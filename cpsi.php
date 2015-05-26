@@ -16,6 +16,8 @@ class CpsiKeys {
     const OPTION_DEBUG = 'cps_debug';
     const OPTION_CERTFILE = 'cps_certfile';
     const OPTION_CERTFILE_PASSWORD = 'cps_certfile_password';
+    const OPTION_ENABLE_INSTALLMENTS = 'enable_installments';
+    const OPTION_REQUIRE_COMPLETE = 'require_complete';
 
 }
 
@@ -101,6 +103,14 @@ class Cpsi_Installer {
 
         if (empty($options[CpsiKeys::OPTION_DEBUG])) {
             $options[CpsiKeys::OPTION_DEBUG] = true;
+        }
+
+        if (empty($options[CpsiKeys::OPTION_ENABLE_INSTALLMENTS])) {
+            $options[CpsiKeys::OPTION_ENABLE_INSTALLMENTS] = false;
+        }
+
+        if (empty($options[CpsiKeys::OPTION_REQUIRE_COMPLETE])) {
+            $options[CpsiKeys::OPTION_REQUIRE_COMPLETE] = true;
         }
 
         update_option(CpsiKeys::OPTIONS_ID, $options);

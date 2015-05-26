@@ -25,6 +25,7 @@ abstract class Cpsi_Form_Abstract {
     const FORM_FIELD_CARDHOLDER_EMAIL = 'cardholder_email';
     const FORM_FIELD_SUBSCRIPTION = 'subscription';
     const FORM_FIELD_PAYMENT_NUMBER = 'payment_number';
+    const FORM_FIELD_PAYMENT_ALL = 'payment_all';
 
     private $_defaultFormLabels = array(
         self::FORM_FIELD_TARGET => 'target',
@@ -46,7 +47,8 @@ abstract class Cpsi_Form_Abstract {
         self::FORM_FIELD_CARDHOLDER_PHONE => 'cardholder_phone',
         self::FORM_FIELD_CARDHOLDER_EMAIL => 'cardholder_email',
         self::FORM_FIELD_SUBSCRIPTION => 'subscription',
-        self::FORM_FIELD_PAYMENT_NUMBER => 'payment_number'
+        self::FORM_FIELD_PAYMENT_NUMBER => 'payment_number',
+        self::FORM_FIELD_PAYMENT_ALL => 'payment_all'
     );
 
     /**
@@ -81,11 +83,6 @@ abstract class Cpsi_Form_Abstract {
     protected $_optionalFormFieldValueParis = array();
 
     /**
-     * Override this method to implement custom CMS payment form
-     */
-    protected abstract function _constructFormFromDefinition(array $formFields);
-
-    /**
      * 
      * @param Cpsi $cpsi
      * @param int $orderNumber
@@ -103,7 +100,7 @@ abstract class Cpsi_Form_Abstract {
         $this->currency = $currency;
         $this->amount = $amount;
         $this->cart = $cart;
-        $this->requireComplete = (is_bool($requireComplete) || (is_string($requireComplete) && strtolower($requireComplete) == 'true')) ? 'true' : 'false';
+        $this->requireComplete = ( (is_bool($requireComplete) && $requireComplete) || (is_string($requireComplete) && strtolower($requireComplete) == 'true')) ? 'true' : 'false';
         $this->bestBeforeTs = $bestBeforeTs;
     }
 
@@ -116,6 +113,37 @@ abstract class Cpsi_Form_Abstract {
         $fieldDefinitions = $this->_constructFormFieldDefinitions();
         $finalFormFieldDefinitions = $this->_addOptionalFormFieldDefinitions($fieldDefinitions, $this->_getOptionalFormFieldValuePairs());
         return $this->_constructFormFromDefinition($finalFormFieldDefinitions);
+    }
+
+    /**
+     * 
+     * @param bool $enable
+     */
+    public function setEnableInstallments($enable = true) {
+        if ($enable) {
+            $this->_optionalFormFieldValueParis[self::FORM_FIELD_PAYMENT_ALL] = 'Y0299';
+        } else {
+            unset($this->_optionalFormFieldValueParis[self::FORM_FIELD_PAYMENT_ALL]);
+        }
+    }
+
+    /**
+     * Generate form
+     */
+    protected function _constructFormFromDefinition(array $formFields) {
+        ?>
+
+        <form id="corvus-autosubmit" method="POST" action="<?php echo $this->getAction() ?>">
+            <?php foreach ($formFields as $name => $field) : ?>
+                <input type="hidden" name="<?php echo $name ?>" 
+                       value="<?= $field['value'] ?>"/>
+                   <?php endforeach; ?>
+
+            <script type="text/javascript">
+                document.forms['corvus-autosubmit'].submit();
+            </script>
+        </form>
+        <?php
     }
 
     /**
@@ -268,6 +296,7 @@ abstract class Cpsi_Form_Abstract {
                 case self::FORM_FIELD_CARDHOLDER_EMAIL:
                 case self::FORM_FIELD_SUBSCRIPTION:
                 case self::FORM_FIELD_PAYMENT_NUMBER:
+                case self::FORM_FIELD_PAYMENT_ALL:
                     $optionalFormFieldDefinitions[$key] = $this->_makeFormFieldDefinition($value, $key);
                     break;
                 default:

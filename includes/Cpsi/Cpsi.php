@@ -90,7 +90,7 @@ class Cpsi {
         if ($validHash != $postHash)
             return false;
 
-        return true;
+        return $postOrderNumber;
     }
 
     /**
@@ -100,7 +100,7 @@ class Cpsi {
         try {
             $this->_filterOrderNumber($this->_getRequest('order_number'));
             $this->_filterLanguage($this->_getRequest('language'));
-            return true;
+            return $this->_getRequest('order_number');
 
             // Catch validation errors since we need to return boolean
         } catch (Exception $ex) {
@@ -143,7 +143,7 @@ class Cpsi {
     private function _filterCurrency($currency) {
         if (!is_string($currency) || strlen($currency) != 3) {
             $currency = htmlentities($currency);
-            throw new InvalidArgumentException(sprintf("Invalid currency specified: '%s' given", is_scalar($currency) ? $currency : '<object>'));
+            throw new InvalidArgumentException(sprintf("Invalid currency specified: '%s' given", is_scalar($currency) ? htmlentities($currency) : '<object>'));
         }
 
         return strtoupper($currency);
@@ -151,7 +151,7 @@ class Cpsi {
 
     private function _filterLanguage($language) {
         if (!is_string($language) || strlen($language) != 2) {
-            throw new InvalidArgumentException(sprintf("Provided language is not valid: '%' given", is_scalar($language) ? $language : '<object>'));
+            throw new InvalidArgumentException(sprintf("Provided language is not valid: '%' given", is_scalar($language) ? htmlentities($language) : '<object>'));
         }
 
         return strtolower($language);

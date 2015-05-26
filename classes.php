@@ -107,6 +107,12 @@ class Cpsi_Gateway extends WC_Payment_Gateway {
                 case CpsiKeys::OPTION_CANCEL_PAGE_ID:
                     $options[CpsiKeys::OPTION_CANCEL_PAGE_ID] = $val;
                     break;
+                case CpsiKeys::OPTION_ENABLE_INSTALLMENTS:
+                    $options[CpsiKeys::OPTION_ENABLE_INSTALLMENTS] = $val == "yes" ? true : false;
+                    break;
+                case CpsiKeys::OPTION_REQUIRE_COMPLETE:
+                    $options[CpsiKeys::OPTION_REQUIRE_COMPLETE] = $val == "yes" ? true : false;
+                    break;
             }
         }
 
@@ -137,6 +143,18 @@ class Cpsi_Gateway extends WC_Payment_Gateway {
                 'type' => 'password',
                 'label' => __('CorvusPay secret key', 'cgsi'),
                 'default' => ''
+            ),
+            CpsiKeys::OPTION_ENABLE_INSTALLMENTS => array(
+                'title' => __('Enable installments', 'cgsi'),
+                'type' => 'checkbox',
+                'label' => __('', 'cgsi'),
+                'default' => $options[CpsiKeys::OPTION_ENABLE_INSTALLMENTS]
+            ),
+            CpsiKeys::OPTION_REQUIRE_COMPLETE => array(
+                'title' => __('Preauthorization', 'cgsi'),
+                'type' => 'checkbox',
+                'label' => __('If selected client order needs to be completed in Merchant Portal', 'cgsi'),
+                'default' => $options[CpsiKeys::OPTION_REQUIRE_COMPLETE]
             ),
             CpsiKeys::OPTION_DEBUG => array(
                 'title' => __('Debug mode', 'cgsi'),
@@ -284,7 +302,7 @@ class Cpsi_Shortcodes {
             return false;
         } else {
             $orderId = filter_input(INPUT_POST, $var, FILTER_SANITIZE_NUMBER_INT);
-            if(!$orderId) {
+            if (!$orderId) {
                 $orderId = filter_input(INPUT_GET, $var, FILTER_SANITIZE_NUMBER_INT);
             }
         }
@@ -341,10 +359,13 @@ class Cpsi_Shortcodes {
         $language = 'hr';
         $cartDescription = $this->getItemDescription($order);
         $cpsi = $this->_getCpsi();
+        $handle_installments = $this->_options[CpsiKeys::OPTION_ENABLE_INSTALLMENTS];
+        $require_complete = $this->_options[CpsiKeys::OPTION_REQUIRE_COMPLETE];
 
         // $cpsi, $orderNumber, $language, $currency, $amount, $cart, $requireComplete, $bestBeforeTs = 0
-        $form = new Cpsi_Form_Woolcommmerce($cpsi, $orderId, $language, $currency, $amount, $cartDescription, false);
+        $form = new Cpsi_Form_Woolcommmerce($cpsi, $orderId, $language, $currency, $amount, $cartDescription, $require_complete);
         $this->_setOptionalFormFields($form, $order);
+        $form->setEnableInstallments($handle_installments);
 
         echo $form->constructForm();
     }
@@ -379,7 +400,7 @@ class Cpsi_Shortcodes {
         </noscript>
         <?php
     }
-    
+
     /**
      * 
      * @param WC_Order $order
@@ -401,7 +422,12 @@ class Cpsi_Shortcodes {
             }
             $woocommerce->cart->empty_cart();
             $order->payment_complete();
-            $order->update_status('on-hold');
+
+            if ($this->_options[CpsiKeys::OPTION_REQUIRE_COMPLETE]) {
+                $order->update_status('on-hold');
+            } else {
+                $order->update_status('processing');
+            }
         } else {
             $this->redirectToHome();
         }
