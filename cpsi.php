@@ -3,6 +3,7 @@
 /*
   Plugin Name: WP-CPIS
   Description: CorvusPay payment plugin for WooCommerce
+  Version: 1.0.7
  */
 
 class CpsiKeys {

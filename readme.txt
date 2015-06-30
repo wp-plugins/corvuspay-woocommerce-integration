@@ -3,7 +3,7 @@ Contributors: CorvusPay
 Tags: Tags: CorvusPay, CorvusPay, Online Payment Plugin, WooCommerce, Payment Service Provider, Online payments, online transaction, secure payments, internet payment solution, secure payment processing,  phone payments, Creditcard, Visa, MasterCard, American Express, Diners Club International, Maestro International, JCB, Laser, Debit cards, full-service provider, local service
 Requires at least: 4.0.0
 Tested up to: 4.2.2
-Stable tag: 4.3
+Stable tag: 1.0.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
